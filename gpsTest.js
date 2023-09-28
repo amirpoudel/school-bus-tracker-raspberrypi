@@ -1,6 +1,3 @@
-
-const sendLocationToCloud = require("./sendLocation.js")
-
 const SerialPort = require('serialport');
 const Readline = require('serialport').parsers.Readline;
 
@@ -10,8 +7,6 @@ const parser = new Readline();
 port.pipe(parser);
 
 const moment = require('moment-timezone')
-
-
 
 
 function nmeaToDecimal(value, direction) {
@@ -48,62 +43,47 @@ function knotsToKmH(knots) {
 }
 
 
+let gpsData = {
+    latitude: null,
+    longitude: null,
+    speed: null,
+    course: null,
+    altitude: null,
+    date: null,
+    time: null
+};
 
 
 
-
-const gps = {
-		 latitude : null,
-		 longitude : null,
-         speed : null,
-         course : null,
-         altitude : null,
-         date : null,
-         time : null
-		}
-   
-   
-   	
 parser.on('data', (line) => {
-	
-	
-
-	
     const nmeaSentence = line.split(',');
     let shouldPrint = false;
 
     switch(nmeaSentence[0]) {
         case '$GPGGA':
         case '$GNGGA':
-            gps.time = convertUTCToTimeZone(nmeaSentence[1]).format('HH:mm:ss');
-            gps.latitude = formatDecimal(nmeaToDecimal(parseFloat(nmeaSentence[2]), nmeaSentence[3]))
-            gps.longitude = formatDecimal(nmeaToDecimal(parseFloat(nmeaSentence[4]), nmeaSentence[5]));
-            gps.altitude = nmeaSentence[9];
+            gpsData.time = convertUTCToTimeZone(nmeaSentence[1]).format('HH:mm:ss');
+            gpsData.latitude = formatDecimal(nmeaToDecimal(parseFloat(nmeaSentence[2]), nmeaSentence[3]))
+            gpsData.longitude = formatDecimal(nmeaToDecimal(parseFloat(nmeaSentence[4]), nmeaSentence[5]));
+            gpsData.altitude = nmeaSentence[9];
             shouldPrint = true;
             break;
         case '$GPRMC':
         case '$GNRMC':
-            gps.time = convertUTCToTimeZone(nmeaSentence[1]).format('HH:mm:ss');
-           gps.latitude = formatDecimal(nmeaToDecimal(parseFloat(nmeaSentence[3]), nmeaSentence[4]));
-           gps.longitude = formatDecimal(nmeaToDecimal(parseFloat(nmeaSentence[5]), nmeaSentence[6]));
-           gps.speed = knotsToKmH(nmeaSentence[7])
-           gps.course = nmeaSentence[8];
-           gps.date = nmeaSentence[9];
+            gpsData.time = convertUTCToTimeZone(nmeaSentence[1]).format('HH:mm:ss');
+            gpsData.latitude = formatDecimal(nmeaToDecimal(parseFloat(nmeaSentence[3]), nmeaSentence[4]));
+            gpsData.longitude = formatDecimal(nmeaToDecimal(parseFloat(nmeaSentence[5]), nmeaSentence[6]));
+            gpsData.speed = knotsToKmH(nmeaSentence[7])
+            gpsData.course = nmeaSentence[8];
+            gpsData.date = nmeaSentence[9];
             shouldPrint = true;
             break;
     }
 
     if (shouldPrint) {
-        console.log(gps);
-        console.log(gps.time);
-        sendLocationToCloud('BA-1-KHA-3456',gps.latitude,gps.longitude,gps.speed,gps.course,gps.altitude,gps.time)
+        console.log(gpsData);
     }
 });
-
-
-
-
-
 
 
 
