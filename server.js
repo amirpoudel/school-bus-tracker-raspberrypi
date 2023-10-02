@@ -11,7 +11,7 @@ port.pipe(parser);
 
 const moment = require('moment-timezone')
 
-
+console.log("script Runnig")
 
 
 function nmeaToDecimal(value, direction) {
@@ -71,6 +71,7 @@ parser.on('data', (line) => {
 	
     const nmeaSentence = line.split(',');
     let shouldPrint = false;
+    console.log(nmeaSentence);
 
     switch(nmeaSentence[0]) {
         case '$GPGGA':
@@ -92,10 +93,19 @@ parser.on('data', (line) => {
             shouldPrint = true;
             break;
     }
+     if (isNaN(gps.latitude) || isNaN(gps.longitude)) {
+        shouldPrint = false;
+        console.log(gps);
+        console.log(" latitude and longitude is NaN . not updating cloud")
+    }
+    if (lastKnownLatitude === gps.latitude && lastKnownLongitude === gps.longitude) {
+        shouldPrint = false;
+        console.log("Last Known Location and Current Location is Same")
+    }
+
 
     if (shouldPrint) {
         console.log(gps);
-        console.log(gps.time);
         sendLocationToCloud('BA-1-KHA-3456',gps.latitude,gps.longitude,gps.speed,gps.course,gps.altitude,gps.time)
     }
 });
